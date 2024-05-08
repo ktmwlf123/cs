@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://code.jquery.com/jquery-3.6.3.js" integrity="sha256-nQLuAZGRRcILA+6dMBOvcRh5Pe310sBpanc6+QBmyVM=" crossorigin="anonymous"></script>
+    <script src="../data.js"></script>
+    <link href="https://fonts.googleapis.com/css?family=Nanum+Gothic" rel="stylesheet">
+    <link rel="stylesheet" href="../style.css">
+    <title>ColonoScopy Reader Study 2nd</title>
+    <script>
+        let randomArray = [];
+        let index = 0;
+        let zoomist1;
+        let zoomist2;
+        let checkDataList = [0,0];
+        var sex = '';
+        var resi = '';
+        var resiyear = '';
+        var startTime = 0;
+        var saveData = {};
+
+        $(document).ready(()=>{
+            self.moveTo(0,0); //창위치
+            self.resizeTo(screen.availWidth, screen.availHeight);
+            addArray();
+            shuffle(randomArray);
+            saveData['info'] = {'name': '', 'age': '', 'sex': '', 'resi': '' , 'resiyear': '', 'dept': ''};
+            saveData['result'] = {};
+            setDataKey();
+            window.oncontextmenu = function(){
+                return false;
+            }
+            $('input').focusout(function (event) {
+                if($(event.currentTarget).val() !== ''){
+                    $(event.currentTarget).addClass('valued')
+                }
+            })
+            $('.startBtnWrap > button').click(startClick);
+            $(".name").keyup(function (event) {
+                regexp = /[a-z0-9]|[ \[\]{}()<>?|`~!@#$%^&*-_+=,.;:\"'\\]/g;
+                v = $(this).val();
+                if (regexp.test(v)) {
+                    $(this).val(v.replace(regexp, ''));
+                }
+            });
+            init();
+            
+        });
+
+        const addArray = () =>{
+            for(let i = 0; i < pData.length; i++){
+                randomArray[i] = i;
+            }   
+        }
+        const shuffle = (array) => {
+            array.sort(() => Math.random() - 0.5);
+        }
+        function setDataKey(){
+            for(var i = 0; i<pData.length; i++){
+                var key = pData[i].index;
+                saveData.result[key] = {'value1': null, 'value2': null, 'time': ''};
+            }
+        }
+        const init = () => {
+            setImage();
+            setData();
+            setCount();
+        }
+
+        const setImage = () => {
+            $('.imageArea').append('<img src="../pilot_img/resize/resized_region_test_'+ randomArray[index] +'_resolution_3.jpg" alt="" />');
+        }
+        const setData = () => {
+            $('.data1Value').text(': ' + (pData[randomArray[index]].ai > 0 ? 'AD' : 'HP') + ' (Confidence '+pData[randomArray[index]].ai+')');
+        }
+        const setCount = () => {
+            $('.countText > h2').text((index+1) + ' / ' + randomArray.length);
+        }
+
+        const adhpclick = (value) => {
+            $('.adhpButton > div').removeClass('selected');
+            $('.'+value+'Button').addClass('selected');
+            setSaveData('value1', value);
+        }
+        const highlowclick = (value) => {
+            $('.highlowButton > div').removeClass('selected');
+            $('.'+value+'Button').addClass('selected');
+            setSaveData('value2', value);
+        }
+        const nextBtnClick = () => {
+            if(nextValidationCheck()){
+                settingClear();
+                saveData.result[randomArray[index]]['time'] = Date.now();
+                index++;
+                if(index < randomArray.length){
+                    init();
+                }else{
+                    // saveData.startTime = startTime;
+
+                    var today = new Date();
+
+                    var year = today.getFullYear();
+                    var month = ('0' + (today.getMonth() + 1)).slice(-2);
+                    var day = ('0' + today.getDate()).slice(-2);
+
+                    var dateString = year + '-' + month  + '-' + day;
+
+                    dataDownload(JSON.stringify(saveData), 'cs2_' + dateString +'_'+ saveData.info.name , 'txt');
+                    $('.endWrap').css('display', 'flex')
+                }
+            }else{
+                alert('진단을 선택해 주세요.')
+            }
+        }
+
+        const setSaveData = (key, value) => {
+            saveData.result[randomArray[index]][key] = value;
+        }
+
+        const nextValidationCheck = () => {
+            return saveData.result[randomArray[index]]['value1'] === null ? false : true && saveData.result[randomArray[index]]['value2'] === null ? false : true;
+        }
+
+        const settingClear = () => {
+            $('.imageArea').empty();
+            $('.adhpButton > div').removeClass('selected');
+            $('.highlowButton > div').removeClass('selected');
+        }
+
+        function dataDownload(content, fileName, contentType){
+            var a = document.createElement("a");
+            var file = new Blob([content], {type: contentType});
+            a.href = URL.createObjectURL(file);
+            a.download = fileName;
+            a.click();
+        }
+
+        const sexClick = (event, value) => {
+                $('.sexCheck > div').removeClass('formcheckChecked');
+                if(value === '남'){
+                    $('.maleCheck').addClass('formcheckChecked');
+                    saveData.info.sex = '남';
+                }else{
+                    $('.femaleCheck').addClass('formcheckChecked');
+                    saveData.info.sex = '여';
+                }
+            }
+
+            function resiClick(event, value){
+                resi = value;
+                $('.formcheck.resiCheck > div').removeClass('formcheckChecked');
+                if(event.target.classList[0] === 'residentCheck'){
+                    $('.residentCheck').addClass('formcheckChecked');
+                    $('.yearWrap1').show();
+                    $('.yearWrap2').hide();
+                }else{
+                    $('.specialistCheck').addClass('formcheckChecked');
+                    $('.yearWrap1').hide();
+                    $('.yearWrap2').show();
+                }
+            }
+
+            function yearClick(event, value){
+                resiyear = value;
+                $('.formcheck.resiyearCheck > div').removeClass('formcheckChecked');
+                if(event.target.classList[0] === 'resi1Check'){
+                    $('.resi1Check').addClass('formcheckChecked');
+                }else if(event.target.classList[0] === 'resi2Check'){
+                    $('.resi2Check').addClass('formcheckChecked');
+                }else if(event.target.classList[0] === 'resi3Check'){
+                    $('.resi3Check').addClass('formcheckChecked');
+                }else if(event.target.classList[0] === 'resi4Check'){
+                    $('.resi4Check').addClass('formcheckChecked');
+                }
+            }
+
+            const infoValidateCheck = () => {
+                if($('.name').val() === ''){
+                    alert('이름을 입력해 주세요.');
+                    return false;
+                }
+                if($('.ageInput').val().length !== 8){
+                    alert('생년월일 8자를 입력해주세요.');
+                    return false;
+                }
+                let ageY = Number($('.ageInput').val().slice(0,4));
+                let ageM = Number($('.ageInput').val().slice(4,6));
+                let ageD = Number($('.ageInput').val().slice(6));
+                
+                if(ageY < 1900 || ageY > 2023){
+                    alert('생년월일의 연도를 확인해주세요.');
+                    return false;
+                }
+                if(ageM < 1 || ageM > 12){
+                    alert('생년월일의 월을 확인해주세요.');
+                    return false;
+                }
+                if(ageD < 1 || ageD > 31){
+                    alert('생년월일의 일을 확인해주세요.');
+                    return false;
+                }
+                if(!$('.maleCheck').hasClass('formcheckChecked') && !$('.femaleCheck').hasClass('formcheckChecked')){
+                    alert('성별을 선택해 주세요.');
+                    return false;
+                }
+                if(resi === ''){
+                    alert('전공의 여부를 선택해주세요.');
+                    return false;
+                }
+                if(resi === '전공의'){
+                    if(resiyear === ''){
+                        alert('경력을 선택해주세요.');
+                        return false;
+                    }
+                }else{
+                    if($('.yearInput').val() === ''){
+                        alert('취득년도를 입력해주세요.');
+                        return false;
+                    }
+                }
+                saveData.info.name = $('.name').val();
+                saveData.info.age = $('.ageInput').val();
+                saveData.info.resi = resi;
+                saveData.info.resiyear = resi === '전공의' ? resiyear : $('.yearInput').val();
+                return true;
+            }
+
+            const startClick = () => {
+                if(infoValidateCheck()){
+                    $('.formWrap').hide();
+                    $('.wrap').css('display', 'flex');
+                    saveData.startTime = Date.now();
+                }
+            }
+    </script>
+    
+</head>
+<body>
+    <div class="formWrap">
+        <div class="formContent">
+            <div class="infoTitleText fsize-30 fweight-bold borderB-ddd">ColonoScopy Reader Study 2nd</div>
+            <div class="infoSubTitleText fsize-25 fweight-bold">검사자 정보</div>
+            <div class="formRow">
+                <div class="formTitle fsize-18 fweight-bold">이름</div>
+                <input type="text" class="name" placeholder="홍길동">
+            </div>
+            <div class="formRow">
+                <div class="formTitle fsize-18 fweight-bold">생년월일</div>
+                <input type="text" value="" maxlength="8" placeholder="20000101" class="ageInput" onKeyup="this.value=this.value.replace(/[^0-9]/g,'');">
+            </div>
+            <div class="formRow">
+                <div class="formTitle fsize-18 fweight-bold">성별</div>
+                <div class="formcheck sexCheck">
+                    <div class="maleCheck" onclick="sexClick(event, '남')">남</div>
+                    <div class="femaleCheck" onclick="sexClick(event, '여')">여</div>
+                </div>
+            </div>
+            <div class="infoSubTitleText fsize-25 fweight-bold">업무 경력</div>
+            <div class="formcheck resiCheck">
+                <div class="residentCheck" onclick="resiClick(event, '전공의')">전공의</div>
+                <div class="specialistCheck" onclick="resiClick(event, '전문의')">전문의</div>
+            </div>
+            <div class="yearWrap1">
+                <div class="formTitle fsize-18 fweight-bold">연차</div>
+                <div class="formcheck resiyearCheck">
+                    <div class="resi1Check" onclick="yearClick(event, '1R')">1R</div>
+                    <div class="resi2Check" onclick="yearClick(event, '2R')">2R</div>
+                    <div class="resi3Check" onclick="yearClick(event, '3R')">3R</div>
+                    <div class="resi4Check" onclick="yearClick(event, '4R')">4R</div>
+                </div>
+            </div>
+            <div class="yearWrap2">
+                <div class="formTitle fsize-18 fweight-bold">취득년도</div>
+                <div class="formInput felxForm">
+                    <input type="number" min="2000" class="yearInput" value="" placeholder="2000">
+                </div>
+            </div>
+            <div class="startBtnWrap">
+                <button class="bcolor-none back-18b9b9 fcolor-fff fsize-18 fweight-bold">검사 시작</button>
+            </div>
+        </div>
+    </div>
+    <div class="wrap">
+        <div class="leftWrap">
+            <div class="countText">
+                <h2></h2>
+            </div>
+            <div class="imageArea">
+            </div>
+        </div>
+        <div class="rightWrap">
+            <div class="title">
+                <div class="titleText1">ColonoScopy Reader Study 2nd</div>
+            </div>
+            <div class="showData">
+                <div class="data1">
+                    <div class="data1Label">AI prediction</div>
+                    <div class="data1Value"></div>
+                </div>
+            </div>
+            <div class="buttonWrap">
+                <div class="adhpButton">
+                    <div class="adButton" onclick="adhpclick('ad')">AD</div>
+                    <div class="hpButton" onclick="adhpclick('hp')">HP</div>
+                </div>
+                <div class="highlowButton">
+                    <div class="highButton" onclick="highlowclick('high')">High<br/>Confidence</div>
+                    <div class="lowButton" onclick="highlowclick('low')">Low<br/>Confidence</div>
+                </div>
+            </div>
+            <div class="nextBtnWrap">
+                <div class="nextBtn" onclick="nextBtnClick()">NEXT</div>
+            </div>
+        </div>
+    </div>
+    <div class="endWrap">
+        <div>검사가 완료 되었습니다.</div>
+    </div>
+</body>
+</html>
