@@ -66,7 +66,18 @@
         }
 
         const setImage = () => {
-            $('.imageArea').append('<img src="../pilot_img/resize/resized_region_test_'+ randomArray[index] +'_resolution_1.jpg" alt="" />');
+            if(index === 0){
+                $('.imageArea').append('<img class="img'+ index +'" src="../pilot_img/resize/resized_region_test_'+ randomArray[index] +'_resolution_1.jpg" alt="" />');
+                $('.imageArea').append('<img class="img'+ (index+ 1) +'" src="../pilot_img/resize/resized_region_test_'+ randomArray[index+1] +'_resolution_1.jpg" alt="" />');
+                $('.imageArea > .img'+(index+1)).addClass('imgNone');
+            }else if(index === pData.length-1){
+                $('.img' + (index-1)).remove();
+            }else{
+                $('.img' + (index-1)).remove();
+                $('.imageArea').append('<img class="img'+ (index+ 1) +'" src="../pilot_img/resize/resized_region_test_'+ randomArray[index+1] +'_resolution_1.jpg" alt="" />');
+                $('.imageArea > .img'+(index+1)).addClass('imgNone');
+            }
+            $('.imageArea > .img'+index).removeClass('imgNone');
         }
         const setCount = () => {
             $('.countText > h2').text((index+1) + ' / ' + randomArray.length);
@@ -115,7 +126,6 @@
         }
 
         const settingClear = () => {
-            $('.imageArea').empty();
             $('.adhpButton > div').removeClass('selected');
             $('.highlowButton > div').removeClass('selected');
         }
