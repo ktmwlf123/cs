@@ -81,7 +81,7 @@
             $('.imageArea > .img'+index).removeClass('imgNone');
         }
         const setData = () => {
-            $('.data1Value').text(': ' + (pData[randomArray[index]].ai > 0 ? 'AD' : 'HP') + ' (Confidence '+pData[randomArray[index]].ai+')');
+            $('.data1Value').text(': ' + (pData[randomArray[index]].ai > 0 ? 'AD' : 'HP') + ' (Confidence '+ Math.abs(pData[randomArray[index]].ai) +')');
         }
         const setCount = () => {
             $('.countText > h2').text((index+1) + ' / ' + randomArray.length);
